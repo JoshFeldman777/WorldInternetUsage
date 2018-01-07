@@ -1,0 +1,1215 @@
+<html>
+<head>
+    <title>Bowl Test</title>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+    <link href='http://fonts.googleapis.com/css?family=Muli:300' rel='stylesheet' type='text/css'>
+    <style>
+       
+    </style>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+    <script>
+        $(document).ready(function()
+        {
+            var e = $('#sliderDiv');
+            var jWindow = $(window);
+            var offsetTop = e.offset().top;
+        
+            jWindow.scroll(function()
+            {
+                if(jWindow.scrollTop() > offsetTop)
+                    e.css({'position':'fixed', 'top':0});
+                else
+                    e.css({'position':'relative', 'top':0});
+            });
+        });
+    </script>
+   
+
+
+    <div id="container">   
+    <div id="heading">
+        <h1 id="pageTitle">World Population & Internet Usage Growth (1990-2012)</h1>
+        <p>Adjust the slider to show usage levels in different years, and click on a continent space to show its countries.</p>
+        <div id="sliderDiv">
+         <div id="slider">
+        <script>
+        var currentDisplay = "continent";
+
+        $(function(){
+            $("#slider").slider({
+                value: 2012,
+                min: 1990,
+                max: 2012,
+                step:1,
+                slide: function(event, ui) {
+                    var year = ui.value;
+                    d3.select("#currentYear").text("Current Year " +  " - " + year);
+                    currentYear = year;
+
+                
+                    if(previousRunContinent[0]){
+                        renderContinent(completeData,year,"Asia");
+                    }
+                    else {
+                        renderCountry(completeData, year, "Asia");
+                    }
+                    if(previousRunContinent[1]){
+                        renderContinent(completeData,year,"Africa");
+                    }
+                    else {
+                        renderCountry(completeData, year, "Africa");
+                    }
+                    if(previousRunContinent[2]){
+                        renderContinent(completeData,year,"North America");
+                    }
+                    else {
+                        renderCountry(completeData, year, "North America");
+                    }
+                    if(previousRunContinent[3]){
+                        renderContinent(completeData,year,"South America");
+                    }
+                    else {
+                        renderCountry(completeData, year, "South America");
+                    }
+                    if(previousRunContinent[4]){
+                        renderContinent(completeData,year,"Europe");
+                    }
+                    else {
+                        renderCountry(completeData, year, "Europe");
+                    }
+                    if(previousRunContinent[5]){
+                        renderContinent(completeData,year,"Australia");
+                    }
+                    else {
+                        renderCountry(completeData, year, "Australia");
+                    }
+                    
+                    renderAllCountry(completeData, year);
+                    updateTooltip();
+                }
+
+                
+            })
+        });
+        
+        $('#sliderDiv').hover(function(){
+            $(this).css("background-color", "white");
+        }, function(){
+            $(this).css("background-color", "transparent");
+        });
+        
+        </script>
+    </div>
+    <p id="currentYear"> Current Year - 2012 </p>
+    </div>
+    </div>
+        <h2 class="contHeading"><div class="headingWord">North America</div></h2>
+        <div class="singleContinent" class="svgdiv" id="svg3"> </div>
+
+        <div class="contHeading"><div class="headingWord">Asia</div></div>
+        <div class="singleContinent" class="svgdiv" id="svg1"> </div>
+        
+        <h2 class="contHeading"><div class="headingWord">Africa</div></h2>
+        <div class="singleContinent" class="svgdiv" id="svg2"> </div>
+        
+        <h2 class="contHeading"><div class="headingWord">South America</div></h2>
+        <div class="singleContinent" class="svgdiv" id="svg4"> </div>
+        
+        <h2 class="contHeading"><div class="headingWord">Europe</div></h2>
+        <div class="singleContinent" class="svgdiv" id="svg5"> </div>
+        
+        <h2 class="contHeading"><div class="headingWord">Australia</div></h2>
+        <div class="singleContinent" class="svgdiv" id="svg6"> </div>
+        
+        <h2 class="contHeading" id="allContHeading"><div class="headingWord">All Countries</div></h2>
+        <img src= "sandboxKey-01.png" alt = "key" id= "sandboxKey" height ="90" width = "1200">
+        <div class="svgdiv" id="svgAll"></div>
+        
+        <!-- active area div - diagnostics div shows up when this div is moused over -->
+        <div id='diagnostics'>
+            
+            <h1>>> Sandbox Controls <<</h1>
+           <div id="sandboxContinents">
+                <input type="checkbox" name="sandContinent" id="sandNA" value="North America" checked><label>North America</label>
+                <input type="checkbox" name="sandContinent" id="sandSA" value="South America"checked><label>South America</label>
+                <input type="checkbox" name="sandContinent" id="sandE" value="Europe"checked><label>Europe</label>
+                <input type="checkbox" name="sandContinent" id="sandAf" value="Africa"checked><label>Africa</label>
+                <input type="checkbox" name="sandContinent" id="sandAsia" value="Asia"checked><label>Asia</label>
+                <input type="checkbox" name="sandContinent" id="sandAu" value="Australia"checked><label>Australia</label>
+
+            </div>
+            <div id="sandPop">
+                <u>Population</u><br> 
+                
+
+                Minimum
+                <select id="sandPopMin" onchange = "updatePopMin(value)">
+                  <option value="0" selected>0</option>
+                  <option value="500000">500,000</option>
+                  <option value="1000000">1,000,000</option>
+                  <option value="5000000">5,000,000</option>
+                  <option value="10000000">10,000,000</option>
+                  <option value="50000000">50,000,000</option>
+                  <option value="100000000">100,000,000</option>
+                  <option value="500000000">500,000,000</option>
+                  <option value="1000000000">1,000,000,000</option>
+                  <option value="5000000000">5,000,000,000</option>
+                </select>
+
+                 <br>
+              
+                Maximum
+                <select id="sandPopMax" onchange = "updatePopMax(value)">
+                  <option value="0">0</option>
+                  <option value="500000">500,000</option>
+                  <option value="1000000">1,000,000</option>
+                  <option value="5000000">5,000,000</option>
+                  <option value="10000000">10,000,000</option>
+                  <option value="50000000">50,000,000</option>
+                  <option value="100000000">100,000,000</option>
+                  <option value="500000000">500,000,000</option>
+                  <option value="1000000000">1,000,000,000</option>
+                  <option value="5000000000" selected>5,000,000,000</option>
+                </select>
+            </div>
+            <div id="sandInt">
+
+                <u>Internet Use</u></br>
+                Minimum
+                <select id="sandIntMin" onchange = "updateIntMin(value)">
+                  <option value="0" selected>0%</option>
+                  <option value="5">5%</option>
+                  <option value="10">10%</option>
+                  <option value="15">15%</option>
+                  <option value="20">20</option>
+                  <option value="25">25</option>
+                  <option value="30">30%</option>
+                  <option value="35">35%</option>
+                  <option value="40">40%</option>
+                  <option value="45">45%</option>
+                  <option value="50">50%</option>
+                  <option value="55">55%</option>
+                  <option value="60">60%</option>
+                  <option value="65">65%</option>
+                  <option value="70">70%</option>
+                  <option value="75">75%</option>
+                  <option value="80">80%</option>
+                  <option value="85">85%</option>
+                  <option value="90">90%</option>
+                  <option value="95">95%</option>
+                  <option value="100">100%</option>
+                </select>
+                </br>
+                Maximum
+                <select id="sandIntMax" onchange = "updateIntMax(value)">
+                  <option value="0" >0%</option>
+                  <option value="5">5%</option>
+                  <option value="10">10%</option>
+                  <option value="15">15%</option>
+                  <option value="20">20</option>
+                  <option value="25">25</option>
+                  <option value="30">30%</option>
+                  <option value="35">35%</option>
+                  <option value="40">40%</option>
+                  <option value="45">45%</option>
+                  <option value="50">50%</option>
+                  <option value="55">55%</option>
+                  <option value="60">60%</option>
+                  <option value="65">65%</option>
+                  <option value="70">70%</option>
+                  <option value="75">75%</option>
+                  <option value="80">80%</option>
+                  <option value="85">85%</option>
+                  <option value="90">90%</option>
+                  <option value="95">95%</option>
+                  <option value="100" selected>100%</option>
+                </select>
+
+            </div>
+        </div>
+        
+        <div id='activate_d'>
+            <h1 id="hoverprompt"> &gt;&gt; Sandbox Controls &lt;&lt;</h1>
+        </div>
+    
+    <script>
+        //script for popup control panel at the bottom of the page
+        $(document).ready( function(){
+        
+    
+        $('#diagnostics').hide();
+        $("#activate_d").mouseenter(function(){
+            $("#activate_d").css('background-color', 'transparent');
+            $("#hoverprompt").hide();
+            $('#diagnostics').fadeIn();
+            $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+            return false;
+        })
+        
+        $("#diagnostics").mouseleave(function(){
+            $('#diagnostics').hide();
+            $("#hoverprompt").show();
+            $("#activate_d").css('background-color', 'white');
+            return false;
+        })
+        
+        });
+
+        var sandNA = true;
+        var sandSA = true;
+        var sandE = true;
+        var sandAu = true;
+        var sandAf = true;
+        var sandAsia = true;
+        var sandPopMin = 0;
+        var sandPopMax = 1400000000;
+        var sandIntMin = 0;
+        var sandIntMax = 100;
+
+        $( "#sandNA" ).change(function() {
+            sandNA = !sandNA;
+            renderAllCountry(completeData,currentYear);
+        });
+        $( "#sandSA" ).change(function() {
+            sandSA = !sandSA;
+            renderAllCountry(completeData,currentYear);
+        });
+        $( "#sandE" ).change(function() {
+            sandE = !sandE;
+            renderAllCountry(completeData,currentYear);
+        });
+        $( "#sandAu" ).change(function() {
+            sandAu = !sandAu;
+            renderAllCountry(completeData,currentYear);
+        });
+        $( "#sandAsia" ).change(function() {
+            sandAsia = !sandAsia;
+            renderAllCountry(completeData,currentYear);
+        });
+        $( "#sandAf" ).change(function() {
+            sandAf = !sandAf;
+            renderAllCountry(completeData,currentYear);
+        });
+        function updatePopMin(value) {
+            sandPopMin = value;
+            renderAllCountry(completeData,currentYear);
+        }
+        function updatePopMax(value) {
+            sandPopMax = value;
+            renderAllCountry(completeData,currentYear);
+        }
+        function updateIntMin(value) {
+            sandIntMin = value;
+            renderAllCountry(completeData,currentYear);
+        }
+        function updateIntMax(value) {
+            sandIntMax = value;
+            renderAllCountry(completeData,currentYear);
+        }
+
+    </script>
+    </div>
+    
+    
+    
+
+    <script>
+
+
+    var canvasWidth = 1200;
+    var canvasHeight = 480;
+    var allWidth = 1200;
+    var allHeight = 770;
+    var xSpot = canvasWidth/6;
+    var ySpot = canvasHeight/2;
+
+    var test = true;
+    
+    var firstRun = [true, true, true, true, true, true];
+    var firstRunAllCountries = true;
+    var previousRunContinent = [true, true, true, true, true, true];
+    
+    
+    var colorScale90 = d3.scale.linear().domain([0,100]).range([60,120]);
+    var colorScale120 = d3.scale.linear().domain([0,100]).range([90,150]);
+    var colorScale150 = d3.scale.linear().domain([0,100]).range([120,180]);
+    var colorScale180 = d3.scale.linear().domain([0,100]).range([150,210]);
+    var colorScale210 = d3.scale.linear().domain([0,100]).range([180, 240]);
+
+    
+
+    var rScale = d3.scale.sqrt().domain([0,2000000000]).range([14,100]);
+
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    var svg1 = d3.select("#svg1").append("svg").attr("height", canvasHeight).attr("width", canvasWidth);
+    var svg2 = d3.select("#svg2").append("svg").attr("height", canvasHeight).attr("width", canvasWidth);
+    var svg3 = d3.select("#svg3").append("svg").attr("height", canvasHeight).attr("width", canvasWidth);
+    var svg4 = d3.select("#svg4").append("svg").attr("height", canvasHeight).attr("width", canvasWidth);
+    var svg5 = d3.select("#svg5").append("svg").attr("height", canvasHeight).attr("width", canvasWidth);
+    var svg6 = d3.select("#svg6").append("svg").attr("height", canvasHeight).attr("width", canvasWidth);
+    var svgAll = d3.select("#svgAll").append("svg").attr("height", allHeight).attr("width", allWidth);
+    
+    svg1.append("g").attr("id", "stroke"); svg1.append("g").attr("id", "color"); svg1.append("g").attr("id", "country"); svg1.append("g").attr("id", "value");
+    svg2.append("g").attr("id", "stroke"); svg2.append("g").attr("id", "color"); svg2.append("g").attr("id", "country"); svg2.append("g").attr("id", "value");
+    svg3.append("g").attr("id", "stroke"); svg3.append("g").attr("id", "color"); svg3.append("g").attr("id", "country"); svg3.append("g").attr("id", "value");
+    svg4.append("g").attr("id", "stroke"); svg4.append("g").attr("id", "color"); svg4.append("g").attr("id", "country"); svg4.append("g").attr("id", "value");
+    svg5.append("g").attr("id", "stroke"); svg5.append("g").attr("id", "color"); svg5.append("g").attr("id", "country"); svg5.append("g").attr("id", "value");
+    svg6.append("g").attr("id", "stroke"); svg6.append("g").attr("id", "color"); svg6.append("g").attr("id", "country"); svg6.append("g").attr("id", "value");
+
+
+
+     svgAll.append("g").attr("id", "stroke"); svgAll.append("g").attr("id", "color"); svgAll.append("g").attr("id", "country"); svgAll.append("g").attr("id", "value");
+    
+    svg1.on("click", function(d){
+        updateTooltip();
+        if(previousRunContinent[0]){renderCountry(completeData,currentYear,"Asia");} 
+            else { renderContinent(completeData, currentYear, "Asia");
+        renderContinent(completeData, currentYear, "Asia");
+    }});
+    
+    svg2.on("click", function(d){
+        updateTooltip();
+        if(previousRunContinent[1]){renderCountry(completeData,currentYear,"Africa");} 
+            else { renderContinent(completeData, currentYear, "Africa");
+            renderContinent(completeData, currentYear, "Africa");
+        }
+        }); 
+    svg3.on("click", function(d){
+        updateTooltip();
+        if(previousRunContinent[2]){renderCountry(completeData,currentYear,"North America");} 
+            else { renderContinent(completeData, currentYear, "North America");
+            renderContinent(completeData, currentYear, "North America");
+        }
+        }) ;
+    svg4.on("click", function(d){
+        updateTooltip();
+        if(previousRunContinent[3]){renderCountry(completeData,currentYear,"South America");} 
+            else { renderContinent(completeData, currentYear, "South America");
+            renderContinent(completeData, currentYear, "South America");
+        }
+        }); 
+    svg5.on("click",  function(d){
+        updateTooltip();
+        if(previousRunContinent[4]){renderCountry(completeData,currentYear,"Europe");} 
+            else { renderContinent(completeData, currentYear, "Europe");
+        renderContinent(completeData, currentYear, "Europe");
+    }}); 
+    svg6.on("click",  function(d){
+        updateTooltip();
+        if(previousRunContinent[5]){renderCountry(completeData,currentYear,"Australia");} 
+            else { renderContinent(completeData, currentYear, "Australia");
+        renderContinent(completeData, currentYear, "Australia");
+    }}); 
+
+
+    var updateTooltip = function() {
+        $(document).tooltip("option","content",
+            function() {
+                var stuff = d3.select(this)[0][0]["attributes"][6].value;
+                return stuff;
+
+            }
+
+        );
+
+
+    }
+        
+
+    $(function() {
+        $( document ).tooltip({
+            items: "[data-title]",
+            track: true,
+            content: function() {return $(this).data("title")} 
+
+        });
+                 });
+
+
+    var renderContinent = function( data, year, cont )
+        {
+            
+            countries = [];
+            data.forEach(function(country) {
+                if(country.Year == year && country.Continent == cont) {
+                    countries.push(country);
+
+                }
+            });
+            
+            
+            circleColor = "black";
+            if(cont=="Asia"){contNum = 1; circleColor = "rgb(246,150,120)";}
+            else if(cont=="Africa"){contNum = 2;circleColor = "rgb(210,150,180)";}
+            else if(cont=="North America"){contNum = 3;circleColor = "rgb(109,180,246)";}
+            else if(cont=="South America"){contNum = 4;circleColor = "rgb(253,198,120)";}
+            else if(cont=="Europe"){contNum = 5;circleColor = "rgb(180,100,100)";}
+            else{contNum = 6;circleColor = "rgb(100,180,100)";}
+            
+            
+            // data points and sum
+            var dataPoints  = [];
+            var dataCount = data.length;
+            
+            
+            var PI = 3.141;
+            
+            
+            
+            // animation duration in ms
+            var transitionDuration = 1000;	
+            
+            var i = 0;
+
+            totalPopulation = 0;
+            totalUsers = 0;
+            continent = cont;
+
+
+            for (var field in countries) {
+
+                var value = countries[field];
+                totalPopulation += value.Population;
+                totalUsers += (value.Percent*value.Population)/100;
+            }
+
+            totalPercentage = totalUsers/totalPopulation;
+
+            dataPoints = [];
+            dataPoints.push( 
+                {
+                    population: totalPopulation
+                    ,percentage: totalPercentage
+                    ,continent: continent
+                    ,x: xSpot
+                    ,y: ySpot
+                    ,index: 0
+                    ,year: year
+                    ,fillColor: circleColor
+                    ,strokeColor: circleColor
+                    //,title: field 
+                    ,description: "<strong>Continent:</strong> " + continent + " <br/> <strong>Population:</strong> " + numberWithCommas(totalPopulation) + "<br/><strong>Users: </strong>" + numberWithCommas(Math.round(totalUsers)) + "<br/><strong>Percent:</strong> " + (totalPercentage*100).toFixed(2) + "%"
+                    ,radius: rScale(totalPopulation)
+                    ,clipHeightOffset: Math.round((1-totalPercentage) * rScale(totalPopulation) * 2)
+                    ,uniqueid: "dataseg-" + contNum
+                }
+            );
+                    
+            
+
+
+            // maybe this is the first data we know of, so setup the D3 objects
+            
+            var svg = d3.select("#svg"+contNum + " svg");
+                    
+                gStroke = svg.select("#stroke");
+                gColor = svg.select("#color");
+                gTextTitle = svg.select("#country");
+                gTextValue = svg.select("#value");
+    
+                    
+            clip = svg.selectAll("clipPath").data( dataPoints );
+            circleColored = gColor.selectAll("circle").data( dataPoints );
+             circleStroked = gStroke.selectAll("circle").data( dataPoints );
+             textTitle = gTextTitle.selectAll("text").data( dataPoints );
+            textValue = gTextValue.selectAll("text").data( dataPoints );
+ //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if(firstRun[contNum - 1] || !previousRunContinent[contNum-1]){
+                   // svg = d3.select("#svg");
+                      
+                    ////////////////////////////
+                    // clipping			
+                    
+                    clip.exit().remove();
+            
+                    clip.enter().append("clipPath")	
+                           .attr("class", "clipPath")		
+                           .append("rect")
+                           ;
+                            
+                            
+                    
+                    ////////////////////////////
+                    // circle - colored	
+                    
+                    
+
+                    circleColored.exit().remove();
+
+                    circleColored.enter().append("circle")
+                            .attr("r", function(d) {return d.radius; })
+                            .attr("fill", function(d) { return d.fillColor;  })
+                            .attr("clip-path", function(d){ return "url(#"+d.uniqueid+")"; } ) 
+                            .attr("style","stroke:rgb(0,0,0);stroke-width:0;z-index:10000;")				
+                    ;
+
+                    circleColored
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("data-title", function(d) {return d.description;})
+                    ;
+                            
+                            
+                    
+                    ////////////////////////////			
+                    // circle stroked
+                    
+
+                    circleStroked.exit().remove();
+
+                    circleStroked.enter().append("circle")
+                            .attr("r", function(d) {return d.radius; })				
+                            .attr("stroke",function (d){return "" + d.strokeColor})
+                            .attr("stroke-width","2")
+                            .attr("fill","white")
+                            //.attr("filter","url(#dropshadow)")
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("data-title", function(d){return d.description;})
+                    ;
+                    
+                    
+                    
+                    ////////////////////////////
+                    // text title
+                    
+                    textTitle = gTextTitle.selectAll("text")
+                            .data( dataPoints )
+                    ;
+
+                    textTitle.exit().remove();
+
+                    textTitle.enter().append("text")	
+                    
+                    
+                    
+                    ////////////////////////////	
+                    // text value
+                    
+                    
+
+                    textValue.exit().remove();
+
+                    textValue.enter().append("text");
+
+
+                    clip
+                    .data( dataPoints )
+                    .attr("id",function(d){ return d.uniqueid })
+                    .select("rect")
+                            .transition()
+                            .duration( transitionDuration )
+                            .attr("x", function(d) { return d.x - d.radius })
+                            .attr("y", function(d) { return d.y - d.radius
+                             + d.clipHeightOffset 
+                         })
+                            .attr("width" , function(d) {return d.radius*2;} )
+                            .attr("height" , function(d) {
+                                //console.log("potato"); 
+                                return d.radius*2;} )  
+                            .attr("data-title", function(d) {return d.description;})    
+                    ;
+
+                    //No longer first run
+                    firstRun[contNum - 1] = false;
+            }
+            
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            
+            
+            // update the D3 objects with new data points and styles
+
+             else {
+
+            svg
+                .data( dataPoints )
+                .attr("id",function(d){return d.uniqueid })
+                .select("rect")
+                        .transition()
+                        .duration( 0 )
+                        .attr("x", function(d) { return d.x - d.radius })
+                        .attr("y", function(d) { return d.y - d.radius
+                         + d.clipHeightOffset 
+                     })
+                        .attr("width" , function(d) {return d.radius*2;} )
+                        .attr("height" , function(d) { return d.radius*2;} )
+                        .attr("data-title", function(d) {return d.description;})            
+            ;
+            }
+
+            
+            
+            circleColored
+                    .data( dataPoints )
+                    .transition()				
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("r", function(d){return d.radius;})
+                            .attr("fill",function(d){return d.fillColor})
+                            .attr("data-title", function(d){return d.description;})
+                    ;
+                    
+            
+            circleStroked
+                    .data( dataPoints )
+                    .transition()				
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("r", function(d){return d.radius;})
+                            .attr("stroke",function(d){return d.fillColor})
+                            .attr("data-title", function(d){return d.description;})
+                    ;
+            
+
+         
+            
+            previousRunContinent[contNum-1] = true;
+    }
+
+    var renderCountry = function( data, year, cont )
+        {
+            countries = [];
+ 
+
+            contNum = 0;
+            circleColor = "black";
+            
+
+            data.forEach(function(country) {
+                if(country.Year == year && country.Continent == cont) {
+                    
+                    
+                    countries.push(country);
+                }
+
+            });
+             
+
+            var dataPoints  = [];
+            var dataCount = data.length;
+            
+           
+            
+            var PI = 3.141;
+            
+
+            
+            
+            // animation duration in ms
+            var transitionDuration = 500;   
+            
+            var i = 0;
+
+            continent = cont;
+
+            currentX = 0;
+            xGap = 4;
+            yChange = 0;
+            yGap = 40;
+            currentY = 100;
+            dataPoints = [];
+
+            for (var field in countries) {
+                
+                var value = countries[field];
+
+                if(yChange < rScale(value.Population)) {yChange = rScale(value.Population);}
+
+                if(currentX + 2*rScale(value.Population) > canvasWidth){
+                    currentX = 0; currentY += yChange + yGap; yChange = 0;
+                }
+
+                currentX += rScale(value.Population) + xGap;
+                userNum = Math.round(value.Population * (value.Percent/100));
+                //console.log(value);
+
+                circleColor = "black";
+                if(cont=="Asia"){contNum = 1; circleColor = "rgb(246,150,120)";}
+                else if(cont=="Africa"){contNum = 2;circleColor = "rgb(210,150,180)";}
+                else if(cont=="North America"){contNum = 3;circleColor = "rgb(109,180,246)";}
+                else if(cont=="South America"){contNum = 4;circleColor = "rgb(253,198,120)";}
+                else if(cont=="Europe"){contNum = 5;circleColor = "rgb(180,100,100)";}
+                else{contNum = 6;circleColor = "rgb(100,180,100)";}
+                
+
+                dataPoints.push( 
+                    {
+                        population: value.Population
+                        ,percentage: value.Percent/100
+                        ,continent: continent
+                        ,country: value.Country
+                        ,x: currentX
+                        ,y: currentY
+                        ,index: i
+                        ,year: year
+                        ,fillColor: circleColor
+                        ,strokeColor: circleColor
+                        ,description: "<strong>Country:</strong> " + value.Country + " <br/> <strong>Population:</strong> " + numberWithCommas(value.Population) + "<br/><strong>Users: </strong>" + numberWithCommas(userNum) + "<br/><strong>Percent:</strong> " + (value.Percent).toFixed(2) + "%"
+                        ,radius: rScale(value.Population)
+                        ,clipHeightOffset: Math.round((1-value.Percent/100) * rScale(value.Population) * 2)
+                        ,uniqueid: "dataseg-" + i
+
+                    }
+
+                );
+                currentX += rScale(value.Population) + xGap;
+                i++;
+
+            }
+
+            
+                    
+          
+
+
+            // maybe this is the first data we know of, so setup the D3 objects
+
+            var ran = false;
+            var svg = d3.select("#svg"+contNum + " svg");
+                    
+                gStroke = svg.select("#stroke");
+                gColor = svg.select("#color");
+                gTextTitle = svg.select("#country");
+                gTextValue = svg.select("#value");
+
+
+            if(previousRunContinent[contNum-1]){
+
+                svg.selectAll("circle").remove();
+                //svg.selectAll(".clipPath").remove();
+
+            }        
+
+                            
+            clip = svg.selectAll("clipPath").data( dataPoints );
+            circleColored = gColor.selectAll("circle").data( dataPoints );
+            circleStroked = gStroke.selectAll("circle").data( dataPoints );
+            textTitle = gTextTitle.selectAll("text").data( dataPoints );
+            textValue = gTextValue.selectAll("text").data( dataPoints );
+ //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if(firstRun[contNum-1] || previousRunContinent[contNum-1]){
+
+
+                    clip.exit().remove();
+            
+                    clip.enter().append("clipPath")
+                           .attr("class", "clipPath")         
+                           .append("rect");
+
+                    circleColored.exit().remove();
+
+                    circleColored.enter().append("circle")
+                            .attr("r", function(d) {return d.radius; })
+                            .attr("fill", function(d) { return d.fillColor;  })
+                            .attr("clip-path", function(d){ return "url(#"+d.uniqueid+")"; } ) 
+                            .attr("style","stroke:rgb(0,0,0);stroke-width:0;z-index:10000;")                
+                    ;
+
+                    circleColored
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("data-title", function(d) {return d.description;})
+                    ;
+                            
+                            
+                    
+                    ////////////////////////////            
+                    // circle stroked
+                    
+
+                    circleStroked.exit().remove();
+
+                    circleStroked.enter().append("circle")
+                            .attr("r", function(d) {return d.radius; })             
+                            .attr("stroke",function (d){return "" + d.strokeColor})
+                            .attr("stroke-width","2")
+                            .attr("fill","white")
+                            //.attr("filter","url(#dropshadow)")
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("data-title", function(d) {return d.description; })
+                    ;
+                    
+                    
+                    
+                    ////////////////////////////
+                    // text title
+                    
+                    textTitle = gTextTitle.selectAll("text")
+                            .data( dataPoints )
+                    ;
+
+                    textTitle.exit().remove();
+
+                    textTitle.enter().append("text")    
+                    
+                    
+                    
+                    ////////////////////////////    
+                    // text value
+                    
+                    
+
+                    textValue.exit().remove();
+
+                    textValue.enter().append("text");
+
+
+                    firstRun[contNum-1] = false;
+                    
+            }
+            
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            
+            
+            // update the D3 objects with new data points and styles
+            
+            circleColored
+                    .data( dataPoints )
+                    .transition()               
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("r", function(d){return d.radius;})
+                            .attr("fill",function(d){return d.fillColor})
+                            .attr("data-title", function(d) {return d.description; })
+                    ;
+                    
+            
+            circleStroked
+                    .data( dataPoints )
+                    .transition()               
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("r", function(d){return d.radius;})
+                            .attr("stroke",function(d){return d.fillColor})
+                            .attr("data-title", function(d) {return d.description; })
+                    ;
+            
+
+
+
+            d3.select("#svg"+contNum).selectAll(".clipPath")
+            .data( dataPoints )
+                .attr("id",function(d){return d.uniqueid })
+                .select("rect")
+                        .transition()
+                        .duration( transitionDuration )
+                        .attr("x", function(d) { return d.x - d.radius })
+                        .attr("y", function(d) { return d.y - d.radius
+                         + d.clipHeightOffset 
+                     })
+                        .attr("width" , function(d) {return d.radius*2;} )
+                        .attr("height" , function(d) { return d.radius*2;} ) 
+                        .attr("data-title", function(d) {return d.description;})           
+            ;
+            
+
+            previousRunContinent[contNum-1] = false;
+
+            
+        }
+
+        var renderAllCountry = function( data, year )
+        {
+            countries = [];
+            countriesGone = [];
+            data.forEach(function(country) {
+                if(country.Year == year) {
+
+                     cont = country.Continent;
+
+                        circleColor = "white";
+                        if(cont=="Asia" && sandAsia){contNum = 1; circleColor = "rgb(246,150,120)";}
+                        else if(cont=="Africa" && sandAf){contNum = 2;circleColor = "rgb(210,150,180)";}
+                        else if(cont=="North America" && sandNA){contNum = 3;circleColor = "rgb(109,180,246)";}
+                        else if(cont=="South America" && sandSA){contNum = 4;circleColor = "rgb(253,198,120)";}
+                        else if(cont=="Europe" && sandE){contNum = 5;circleColor = "rgb(180,100,100)";}
+                        else if (cont=="Australia" && sandAu){contNum = 6;circleColor = "rgb(100,180,100)";}
+
+                    if(circleColor!="white" 
+                        && country.Population >= sandPopMin
+                        && country.Population <= sandPopMax
+                        && country.Percent >= sandIntMin
+                        && country.Percent <= sandIntMax
+                        ){
+
+                        countries.push({
+
+                            Country: country.Country
+                            ,Continent: country.Continent
+                            ,Percent: country.Percent
+                            ,Population: country.Population
+                            ,Year: country.Year
+                            ,CircleCol: circleColor
+
+                            });
+                    }
+                    else {
+                        countriesGone.push({
+
+                            Country: country.Country
+                            ,Continent: country.Continent
+                            ,Percent: country.Percent
+                            ,Population: 0
+                            ,Year: country.Year
+                            ,CircleCol: "white"
+
+                            });
+                    }
+                }
+            });
+
+
+            var countries = countries.concat(countriesGone);
+
+            contNum = 0;
+           
+            
+            var dataPoints  = [];
+            var dataCount = data.length;
+            
+
+            
+            var PI = 3.141;
+            
+            // animation duration in ms
+            var transitionDuration = 500;   
+            
+            var i = 0;
+
+            //continent = cont;
+
+            currentX = 0;
+            xGap = 6;
+            yChange = 0;
+            yGap = 50;
+            currentY = 100;
+            dataPoints = [];
+
+            for (var field in countries) {
+
+                var value = countries[field];
+
+                if(yChange < rScale(value.Population)) {yChange = rScale(value.Population);}
+
+                if(currentX + 2*rScale(value.Population) + 8 > canvasWidth){
+                    currentX = 0; currentY += yChange + yGap; yChange = 0;
+                }
+
+                currentX += rScale(value.Population) + xGap;
+                userNum = Math.round(value.Population * (value.Percent/100));
+
+
+                dataPoints.push( 
+                    {
+                        population: value.Population
+                        ,percentage: value.Percent/100
+                        ,continent: continent
+                        ,country: value.Country
+                        ,x: currentX
+                        ,y: currentY
+                        ,index: i
+                        ,year: year
+                        ,fillColor: value.CircleCol
+                        ,strokeColor: value.CircleCol
+                        ,description: "<strong>Country:</strong> " + value.Country + " <br/> <strong>Population:</strong> " + numberWithCommas(value.Population) + "<br/><strong>Users: </strong>" + numberWithCommas(userNum) + "<br/><strong>Percent:</strong> " + (value.Percent).toFixed(2) + "%"
+                        ,radius: rScale(value.Population)
+                        ,clipHeightOffset: Math.round((1-value.Percent/100) * rScale(value.Population) * 2)
+                        ,uniqueid: "dataseg-" + (1000+i)
+
+                    }
+
+
+                );
+                currentX += rScale(value.Population) + 4;
+                i++;
+
+            }
+            
+                    
+          
+
+
+            // maybe this is the first data we know of, so setup the D3 objects
+            
+            var ran = false;
+            var svg = d3.select("#svgAll" + " svg");
+                    
+                gStroke = d3.select("#svgAll").select("#stroke");
+                gColor = d3.select("#svgAll").select("#color");
+                gTextTitle = d3.select("#svgAll").select("#country");
+
+                            
+
+
+            clip = svg.selectAll("clipPath").data( dataPoints );
+            circleColored = gColor.selectAll("circle").data( dataPoints );
+            circleStroked = gStroke.selectAll("circle").data( dataPoints );
+            textTitle = gTextTitle.selectAll("text").data( dataPoints );
+ //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+            if(firstRunAllCountries){
+
+
+                    clip.exit().remove();
+            
+                    clip.enter().append("clipPath")
+                           .attr("class", "clipPath")         
+                           .append("rect");
+
+                            
+                            
+                    
+                    ////////////////////////////
+                    // circle - colored 
+                    
+                    
+
+                    circleColored.exit().remove();
+
+                    circleColored.enter().append("circle")
+                            .attr("r", function(d) {return d.radius; })
+                            .attr("fill", function(d) { return d.fillColor;  })
+                            .attr("clip-path", function(d){ return "url(#"+d.uniqueid+")"; } ) 
+                            .attr("style","stroke:rgb(0,0,0);stroke-width:0;z-index:10000;")
+
+                    ;
+
+                    circleColored
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("data-title", function(d) {return d.description; })
+                    ;
+                            
+                            
+                    
+                    ////////////////////////////            
+                    // circle stroked
+                    
+
+                    circleStroked.exit().remove();
+
+                    circleStroked.enter().append("circle")
+                            .attr("r", function(d) {return d.radius; })             
+                            .attr("stroke",function (d){return "" + d.strokeColor})
+                            .attr("stroke-width","2")
+                            .attr("fill","white")
+                            //.attr("filter","url(#dropshadow)")
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("data-title", function(d) {return d.description;})
+                    ;
+                    
+                    
+                    
+                    ////////////////////////////
+                    // text title
+                    
+                    textTitle = gTextTitle.selectAll("text")
+                            .data( dataPoints )
+                    ;
+
+                    textTitle.exit().remove();
+
+                    textTitle.enter().append("text")    
+
+                    firstRunAllCountries = false;
+                    
+            }
+            
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            
+            
+            // update the D3 objects with new data points and styles
+        
+
+        
+            
+        
+            
+            circleColored
+                    .data( dataPoints )
+                    .transition()               
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("r", function(d){return d.radius;})
+                            .attr("fill",function(d){return d.fillColor})
+                            .attr("data-title", function(d) {return d.description;})
+                    ;
+                    
+            
+            circleStroked
+                    .data( dataPoints )
+                    .transition()               
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; })
+                            .attr("r", function(d){return d.radius;})
+                            .attr("stroke",function(d){return d.fillColor})
+                            .attr("data-title", function(d) {return d.description;})
+                    ;
+            
+
+
+
+            d3.select("#svgAll").selectAll(".clipPath")
+            .data( dataPoints )
+                .attr("id",function(d){return d.uniqueid })
+                .select("rect")
+                        .transition()
+                        .duration( transitionDuration )
+                        .attr("x", function(d) { return d.x - d.radius })
+                        .attr("y", function(d) { return d.y - d.radius
+                         + d.clipHeightOffset 
+                     })
+                        .attr("width" , function(d) {return d.radius*2;} )
+                        .attr("height" , function(d) { return d.radius*2;} )
+                        .attr("data-title", function(d) {return d.description;})            
+            ;
+            
+            
+        }
+
+
+    var completeData = [];
+    var currentData = [];
+    var currentYear = 2012;
+   d3.json("countryData.json", function(error,countries) { 
+        
+
+        for(var i in countries){
+            completeData.push(countries[i]);
+        }
+        renderContinent(completeData,currentYear,"Asia");
+        renderContinent(completeData,currentYear,"Europe");
+        renderContinent(completeData,currentYear,"North America");
+        renderContinent(completeData,currentYear,"South America");
+        renderContinent(completeData,currentYear,"Australia");
+        renderContinent(completeData,currentYear,"Africa");
+
+        renderAllCountry(completeData, currentYear);
+   });
+
+   
+    
+    
+    
+    var rePlot = function(){
+        newData = [Math.random(),Math.random(),Math.random(),Math.random(),Math.random()];
+        render(newData);
+    }
+            
+            
+            
+    </script>
+    
+    
+</body>
+</html>
